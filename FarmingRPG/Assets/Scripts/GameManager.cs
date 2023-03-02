@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class GameManager : MonoBehaviour
     public int cropInventory;
 
     public CropData selectedCropToPlant;
+    public TextMeshProUGUI stats;
 
     public static GameManager instance;
 
@@ -31,33 +33,42 @@ public class GameManager : MonoBehaviour
         } else {
             instance = this;
         }
+        UpdateStatsText();
     }
 
     public void SetNextDay() {
-
+        curDay++;
+        onNewDay?.Invoke();
+        UpdateStatsText();
     }
 
     public void OnPlantCrop(CropData crop) {
         cropInventory--;
+        UpdateStatsText();
     }
 
     public void OnHarvestCrop(CropData crop) {
         money += crop.sellPrice;
+        UpdateStatsText();
     }
 
     public void PurchaseCrop(CropData crop) {
-
+        money -= crop.purchasePrice;
+        cropInventory++;
+        UpdateStatsText();
     }
 
     public bool CanPlantCrop() {
-        return true;
+        return cropInventory > 0;
     }
 
     public void OnBuyCropButton(CropData crop) {
-
+        if (money >= crop.purchasePrice) {
+            PurchaseCrop(crop);
+        }
     }
 
     private void UpdateStatsText() {
-
+        stats.text = $"Day: {curDay}\nMoney: ${money}\nCrop Inventory: {cropInventory}";
     }
 }
