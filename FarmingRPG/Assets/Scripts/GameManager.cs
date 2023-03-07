@@ -8,10 +8,15 @@ public class GameManager : MonoBehaviour
 {
     public int curDay;
     public int money;
-    public int cropInventory;
+    public int wheatInventory;
+    public int potatoInventory;
 
     public CropData selectedCropToPlant;
     public TextMeshProUGUI stats;
+
+    public Buttons[] buttons;
+
+    private Buttons selectedButton; // Botão atualmente selecionado
 
     public static GameManager instance;
 
@@ -25,6 +30,13 @@ public class GameManager : MonoBehaviour
     private void OnDisable() {
         Crop.onPlantCrop -= OnPlantCrop;
         Crop.onHarvestCrop -= OnHarvestCrop;
+    }
+
+    private void Start() {
+        // Adiciona o listener para o evento de desselecionar o botão atual
+        foreach (Buttons button in buttons) {
+            button.button.onClick.AddListener(DeselectButton);
+        }
     }
 
     private void Awake() {
@@ -43,7 +55,12 @@ public class GameManager : MonoBehaviour
     }
 
     public void OnPlantCrop(CropData crop) {
-        cropInventory--;
+        Debug.Log(crop.name);
+        if (crop.name == "Wheat") {
+            wheatInventory--;
+        } else if (crop.name == "Potato"){
+            potatoInventory--;
+        }
         UpdateStatsText();
     }
 
@@ -54,12 +71,24 @@ public class GameManager : MonoBehaviour
 
     public void PurchaseCrop(CropData crop) {
         money -= crop.purchasePrice;
-        cropInventory++;
+        if (crop.name == "Wheat") {
+            wheatInventory++;
+        } else if (crop.name == "Potato") {
+            potatoInventory++;
+        }
         UpdateStatsText();
     }
 
     public bool CanPlantCrop() {
-        return cropInventory > 0;
+        if (selectedCropToPlant == null) {
+            return false;
+        }
+        if (selectedCropToPlant.name == "Wheat") {
+            return wheatInventory > 0;
+        } else if (selectedCropToPlant.name == "Potato") {
+            return potatoInventory > 0;
+        }
+        return false;
     }
 
     public void OnBuyCropButton(CropData crop) {
@@ -68,7 +97,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void OnSelectCropToPlant(CropData crop) {
+        selectedCropToPlant = crop;
+    }
+
     private void UpdateStatsText() {
-        stats.text = $"Day: {curDay}\nMoney: ${money}\nCrop Inventory: {cropInventory}";
+        stats.text = $"Day: {curDay}\nMoney: ${money}\nWheat Inventory: {wheatInventory}\nPotato Inventory: {potatoInventory}";
+    }
+
+    private void DeselectButton() {
+        foreach (Buttons button in buttons) {
+            button.DeselectButton();
+        }
     }
 }
